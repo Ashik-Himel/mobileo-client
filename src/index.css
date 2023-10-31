@@ -5,7 +5,7 @@
 
 @layer base {
   main {
-    @apply mt-[65px] md:mt-[73px];
+    @apply mt-[65px] md:mt-[114px];
   }
   footer {
     @apply mb-[65px] md:mb-0;

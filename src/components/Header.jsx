@@ -4,12 +4,16 @@ import { axiosInstance } from "../hooks/useAxios";
 import { useQuery } from "@tanstack/react-query";
 import PropTypes from 'prop-types';
 
-const categoriesFetcher = async() => {
-  const res = await axiosInstance('/categories.json');
+const typesFetcher = async() => {
+  const res = await axiosInstance('/types');
+  return res.data;
+}
+const brandsFetcher = async() => {
+  const res = await axiosInstance('/brands');
   return res.data;
 }
 
-const Categories = ({type, icon, cates, setShowDrawer}) => {
+const Categories = ({type, icon, brands, setShowDrawer}) => {
   const [showSubCategories, setShowSubCategories] = useState(false);
 
   return (
@@ -21,23 +25,39 @@ const Categories = ({type, icon, cates, setShowDrawer}) => {
       >
         <img className="w-5 h-5 flex-shrink-0" src={icon} alt={`${type}'s Icon`} />
         <span className="flex-1 ml-3 text-left whitespace-nowrap">{type}</span>
-        <svg
-          className="w-3 h-3"
-          aria-hidden="true"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 18 18"
-        >
-          <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
-        </svg>
+        {
+          showSubCategories ? <svg
+            className="w-3 h-3"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 18 2"
+          >
+            <path
+              stroke="currentColor"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M1 1h16"
+            />
+          </svg> : <svg
+            className="w-3 h-3"
+            aria-hidden="true"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 18 18"
+          >
+            <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 1v16M1 9h16"/>
+          </svg>
+        }
       </button>
       <div>
         {
-          cates?.length && <ul className="h-0 overflow-hidden transition-[height] duration-300 flex flex-col justify-center bg-gray-100 rounded-lg" style={showSubCategories ? {height: `${40*cates.length}px`, marginBlock: '8px'} : {}}>
+          brands?.length && <ul className="h-0 overflow-hidden transition-[height] duration-300 flex flex-col justify-center bg-gray-100 rounded-lg" style={showSubCategories ? {height: `${40*brands.length}px`, marginBlock: '8px'} : {}}>
             {
-              cates?.map(item => <li key={item.name}>
+              brands?.map(item => <li key={item.name}>
                 <Link
-                  to={`/categories/${item.name}`}
+                  to={`/brands/${item.name}`}
                   className="block w-full p-2 transition duration-75 rounded-lg pl-11 hover:bg-gray-200"
                   onClick={() => setShowDrawer(false)}
                 >{item.name}</Link>
@@ -51,7 +71,8 @@ const Categories = ({type, icon, cates, setShowDrawer}) => {
 }
 
 const Header = () => {
-  const {data: categories} = useQuery({queryKey: ['categories'], queryFn: categoriesFetcher});
+  const {data: types} = useQuery({queryKey: ['types'], queryFn: typesFetcher});
+  const {data: brands, isLoading} = useQuery({queryKey: ['brands'], queryFn: brandsFetcher});
 
   const [showSearch, setShowSearch] = useState(false);
   const [showDrawer, setShowDrawer] = useState(false);
@@ -59,9 +80,9 @@ const Header = () => {
   return (
     <header>
       {/* Top Header */}
-      <section className="border-b border-gray-200 fixed top-0 left-0 right-0 z-10 bg-white">
+      <section className="border-b border-gray-200 fixed top-0 left-0 right-0 z-10 bg-gray-50">
         <div className="mx-6 md:mx-auto md:container">
-          <nav className="relative flex justify-between items-center gap-6 py-4 bg-white">
+          <nav className="relative flex justify-between items-center gap-6 py-4 bg-gray-50">
             <div className="flex justify-center items-center gap-4">
               <svg
               className="w-5 h-5 md:hidden cursor-pointer select-none"
@@ -104,7 +125,7 @@ const Header = () => {
                   <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
                 </svg>
 
-                <form className="absolute right-0 top-0 bottom-0 -z-10 w-full sm:max-w-[400px] transition-[top] duration-300 rounded-lg" onSubmit={(e) => e.preventDefault()} style={showSearch ? {top: "112%", bottom: "auto"} : {}}>
+                <form className={`absolute right-0 top-0 bottom-0 -z-10 w-full sm:max-w-[400px] transition-[top] duration-300 rounded-lg ${showSearch ? 'top-[72px] md:top-[120px]' : ''}`} onSubmit={(e) => e.preventDefault()}>
                   <label
                     htmlFor="default-search"
                     className="mb-2 text-sm font-medium sr-only">
@@ -160,11 +181,21 @@ const Header = () => {
           </nav>
         </div>
 
-        {/* <nav className="border-t border-gray-200 py-3">Category Nav</nav> */}
+        <div className="border-t border-gray-200 py-2 bg-primary text-white hidden md:block">
+          <div className="container flex justify-center items-center gap-6">
+            {
+              !isLoading ? brands?.length > 7 ? brands?.slice(0, 7)?.map(item => <Link to={`categories/${item.name}`} key={item.name}>{item.name}</Link>) : brands?.map(item => <Link to={`categories/${item.name}`} key={item.name}>{item.name}</Link>) : <svg aria-hidden="true" className="w-6 h-6 text-white animate-spin fill-white" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                  <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+              </svg>
+              
+            }
+          </div>
+        </div>
       </section>
 
       {/* Bottom Navigation For Small Devices */}
-      <section className="md:hidden fixed bottom-0 left-0 right-0 z-10 h-16 bg-white border-t border-gray-200">
+      <section className="md:hidden fixed bottom-0 left-0 right-0 z-10 h-16 bg-gray-50 border-t border-gray-200">
         <div className="grid h-full grid-cols-4 xsm:grid-cols-5">
           <NavLink
             to='/'
@@ -257,7 +288,7 @@ const Header = () => {
           <div className="py-4">
             <ul className="space-y-2 font-medium">
               {
-                categories?.map(item => <Categories key={item.type} type={item.type} icon={item.icon} cates={item.categories} setShowDrawer={setShowDrawer} />)
+                types?.map(item => <Categories key={item.name} type={item.name} icon={item.icon} brands={brands} setShowDrawer={setShowDrawer} />)
               }
             </ul>
           </div>
@@ -298,6 +329,6 @@ export default Header;
 Categories.propTypes = {
   type: PropTypes.string,
   icon: PropTypes.string,
-  cates: PropTypes.array,
+  brands: PropTypes.array,
   setShowDrawer: PropTypes.func
 }
